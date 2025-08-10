@@ -7,9 +7,6 @@
     "dev": "vercel dev",
     "build": "echo 'Build completed'"
   },
-  "dependencies": {
-    "better-sqlite3": "^8.7.0"
-  },
   "engines": {
     "node": "18.x"
   }
