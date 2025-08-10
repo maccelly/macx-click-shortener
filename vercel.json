@@ -1,17 +1,5 @@
 {
-  "functions": {
-    "api/shorten.js": {
-      "runtime": "@vercel/node"
-    },
-    "api/[code].js": {
-      "runtime": "@vercel/node"
-    }
-  },
   "rewrites": [
-    {https://github.com/maccelly/macx-click-shortener/tree/main
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
     {
       "source": "/([a-zA-Z0-9]{5,8})",
       "destination": "/api/$1"
