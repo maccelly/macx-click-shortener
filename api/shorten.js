@@ -1,22 +1,5 @@
-import Database from 'better-sqlite3';
-import { join } from 'path';
-
-// Datenbank initialisieren
-let db;
-try {
-  db = new Database('/tmp/urls.db');
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS urls (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      short_code TEXT UNIQUE,
-      original_url TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      clicks INTEGER DEFAULT 0
-    )
-  `);
-} catch (error) {
-  console.error('Database initialization error:', error);
-}
+// Einfache In-Memory-Lösung (funktioniert sofort auf Vercel)
+const urlDatabase = new Map();
 
 export default async function handler(req, res) {
   // CORS Headers
@@ -40,16 +23,21 @@ export default async function handler(req, res) {
     }
 
     // Prüfen ob URL bereits existiert
-    const existing = db.prepare('SELECT short_code FROM urls WHERE original_url = ?').get(url);
-    if (existing) {
-      return res.json({ shortUrl: `https://macx.click/${existing.short_code}` });
+    for (const [code, data] of urlDatabase.entries()) {
+      if (data.original === url) {
+        return res.json({ shortUrl: `https://macx.click/${code}` });
+      }
     }
 
     // Neuen Short Code generieren
     const shortCode = generateShortCode();
     
-    // In Datenbank speichern
-    db.prepare('INSERT INTO urls (short_code, original_url) VALUES (?, ?)').run(shortCode, url);
+    // In Memory speichern
+    urlDatabase.set(shortCode, {
+      original: url,
+      created: new Date(),
+      clicks: 0
+    });
 
     res.json({ shortUrl: `https://macx.click/${shortCode}` });
   } catch (error) {
@@ -66,8 +54,7 @@ function generateShortCode() {
   }
   
   // Prüfen ob Code bereits existiert
-  const existing = db.prepare('SELECT id FROM urls WHERE short_code = ?').get(result);
-  if (existing) {
+  if (urlDatabase.has(result)) {
     return generateShortCode(); // Rekursiv neuen Code generieren
   }
   
