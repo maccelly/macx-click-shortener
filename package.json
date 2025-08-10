@@ -1,0 +1,16 @@
+{
+  "name": "macx-click-shortener",
+  "version": "1.0.0",
+  "description": "URL Shortener für macx.click",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build completed'"
+  },
+  "dependencies": {
+    "better-sqlite3": "^8.7.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
