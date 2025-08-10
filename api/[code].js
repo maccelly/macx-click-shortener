@@ -1,11 +1,5 @@
-import Database from 'better-sqlite3';
-
-let db;
-try {
-  db = new Database('/tmp/urls.db');
-} catch (error) {
-  console.error('Database connection error:', error);
-}
+// Geteilte URL-Datenbank (einfache Lösung)
+const urlDatabase = new Map();
 
 export default async function handler(req, res) {
   const { code } = req.query;
@@ -15,15 +9,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    // URL aus Datenbank abrufen
-    const result = db.prepare('SELECT original_url FROM urls WHERE short_code = ?').get(code);
+    // URL aus Memory abrufen
+    const result = urlDatabase.get(code);
 
     if (!result) {
       return res.status(404).send(`
         <html>
           <body style="font-family: Arial; text-align: center; padding: 50px;">
             <h1>404 - URL nicht gefunden</h1>
-            <p>Die angeforderte kurze URL existiert nicht.</p>
+            <p>Die angeforderte kurze URL existiert nicht oder ist abgelaufen.</p>
             <a href="https://macx.click">← Zurück zu macx.click</a>
           </body>
         </html>
@@ -31,10 +25,10 @@ export default async function handler(req, res) {
     }
 
     // Klick zählen
-    db.prepare('UPDATE urls SET clicks = clicks + 1 WHERE short_code = ?').run(code);
+    result.clicks = (result.clicks || 0) + 1;
 
     // Weiterleitung (301 = permanent redirect)
-    res.writeHead(301, { Location: result.original_url });
+    res.writeHead(301, { Location: result.original });
     res.end();
   } catch (error) {
     console.error('Redirect error:', error);
